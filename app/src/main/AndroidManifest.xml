@@ -18,6 +18,9 @@
         android:theme="@style/Theme.GoHangOut"
         tools:targetApi="31">
 
+        <activity android:name=".AddPlaceActivity" />
+        <activity android:name=".MapActivity" />
+
         <!-- Google Maps API 키 추가 -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
