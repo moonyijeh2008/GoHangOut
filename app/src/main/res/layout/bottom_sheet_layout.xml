@@ -3,20 +3,21 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@color/white"
     android:padding="16dp">
 
     <TextView
-        android:id="@+id/bottom_sheet_title"
+        android:id="@+id/bottom_sheet_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="선택한 장소들"
-        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
-        android:gravity="center" />
+        android:text="선택한 요소들"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"/>
+
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/poi_list"
+        android:id="@+id/recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"/>
 
 </LinearLayout>

@@ -7,13 +7,15 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -37,12 +39,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
     private GoogleMap mMap;
     private PlaceDataSource placeDataSource;
     private FusedLocationProviderClient fusedLocationClient;
-    private BottomSheetBehavior<View> bottomSheetBehavior;
-    private TextView textCurrentLocation;
-    private RecyclerView placesRecyclerView;
-    private PlaceAdapter placeAdapter;
-    private TextView textPlaceTitle;
-    private TextView textPlaceLocation;
+    private BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,16 +55,53 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         placeDataSource = new PlaceDataSource(this);
         placeDataSource.open();
 
-        View bottomSheet = findViewById(R.id.bottom_sheet);
-        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        // Initialize BottomSheetBehavior
+//        bottomSheetBehavior.setHideable(true); // Allow the sheet to be hidden
+//        bottomSheetBehavior.setPeekHeight(100); // Set initial peek height
+//        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED); // Set initial state
 
-        textCurrentLocation = findViewById(R.id.text_current_location);
-        textPlaceTitle = findViewById(R.id.text_place_title);
-        textPlaceLocation = findViewById(R.id.text_place_location);
+        // Find the TextView and set its touch listener
+        TextView bottomSheetHandle = findViewById(R.id.bottom_sheet_handle);
+        bottomSheetHandle.setOnTouchListener(new View.OnTouchListener() {
+            private float startX;
+            private float startY;
+            private boolean dragging;
 
-        placesRecyclerView = findViewById(R.id.places_recycler_view);
-        placesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        startX = event.getX();
+                        startY = event.getY();
+                        dragging = false;
+                        return true;
+
+                    case MotionEvent.ACTION_MOVE:
+                        float dx = Math.abs(event.getX() - startX);
+                        float dy = Math.abs(event.getY() - startY);
+                        if (dx > 10 || dy > 10) {
+                            dragging = true;
+                        }
+                        return true;
+
+                    case MotionEvent.ACTION_UP:
+                        if (dragging) {
+                            showBottomDialog();
+                        }
+                        return true;
+                }
+                return false;
+            }
+        });
+
+        // 앱이 시작할 때 바로 BottomSheetDialogFragment 표시
+        // showBottomDialog(); // Uncomment if you want to show it on startup
+    }
+
+    public void showBottomDialog() {
+        List<MyPlace> places = placeDataSource.getAllPlaces();
+        ExampleBottomSheetDialog dialog = new ExampleBottomSheetDialog(places, mMap);
+        dialog.show(getSupportFragmentManager(), "exampleBottomSheetDialog");
     }
 
     @Override
@@ -84,22 +118,17 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         }
 
         List<MyPlace> myPlaces = placeDataSource.getAllPlaces();
-        placeAdapter = new PlaceAdapter(myPlaces, mMap);
-        placesRecyclerView.setAdapter(placeAdapter);
-
         for (MyPlace myPlace : myPlaces) {
             addMarkerForPlace(myPlace);
         }
 
         mMap.setOnMarkerClickListener(marker -> {
-            showBottomSheet(marker);
+            // 클릭 시 BottomSheet를 표시할 필요 없이 기존 DialogFragment가 표시된 상태로 유지
             return false;
         });
 
         mMap.setOnCameraMoveListener(() -> {
-            if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-            }
+            // 지도가 움직일 때 추가 작업이 필요하다면 여기에 추가
         });
     }
 
@@ -116,9 +145,6 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
                         LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
                         mMap.addMarker(new MarkerOptions().position(currentLatLng).title("현재 위치"));
                         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
-
-                        textCurrentLocation.setText(String.format(Locale.getDefault(),
-                                "현재 위치: (%.5f, %.5f)", location.getLatitude(), location.getLongitude()));
                     }
                 });
     }
@@ -137,27 +163,6 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private void showBottomSheet(Marker marker) {
-        textPlaceTitle.setText(marker.getTitle());
-        textPlaceLocation.setText(marker.getPosition().toString());
-
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-
-        marker.showInfoWindow();
-
-        textPlaceTitle.setOnClickListener(v -> {
-            Log.d(TAG, "Title clicked: " + marker.getTitle());
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-        });
-
-        textPlaceLocation.setOnClickListener(v -> {
-            Log.d(TAG, "Location clicked: " + marker.getPosition().toString());
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-        });
     }
 
     @Override

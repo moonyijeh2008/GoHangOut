@@ -1,34 +1,29 @@
 package com.example.gohangout;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.maps.GoogleMap;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.gms.maps.GoogleMap;
 
 import java.util.List;
 
 public class ExampleBottomSheetDialog extends BottomSheetDialogFragment {
 
-    private static final String TAG = "ExampleBottomSheetDialog";
+    private List<MyPlace> placeList;
+    private GoogleMap map;
 
-    private List<MyPlace> placeItems;  // List<PlaceItem> 대신 List<MyPlace>로 변경
-    private RecyclerView poiListRecyclerView;
-    private GoogleMap googleMap;
-
-    public ExampleBottomSheetDialog(List<MyPlace> placeItems, GoogleMap googleMap) {
-        this.placeItems = placeItems;
-        this.googleMap = googleMap;
+    public ExampleBottomSheetDialog(List<MyPlace> placeList, GoogleMap map) {
+        this.placeList = placeList;
+        this.map = map;
     }
 
     @Nullable
@@ -36,30 +31,23 @@ public class ExampleBottomSheetDialog extends BottomSheetDialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.bottom_sheet_layout, container, false);
 
-        TextView bottomSheetTitle = view.findViewById(R.id.bottom_sheet_title);
-        poiListRecyclerView = view.findViewById(R.id.poi_list);
+        RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        poiListRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        // MyPlace에 맞게 PlaceAdapter 사용
-        PlaceAdapter adapter = new PlaceAdapter(placeItems, googleMap);
-        poiListRecyclerView.setAdapter(adapter);
-
-        logPlaceItems();
+        // PlaceAdapter를 사용하여 RecyclerView에 장소 목록을 표시
+        PlaceAdapter adapter = new PlaceAdapter(placeList, map);
+        recyclerView.setAdapter(adapter);
 
         return view;
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        logPlaceItems();
-    }
-
-    private void logPlaceItems() {
-        Log.d(TAG, "Place items in bottom sheet:");
-        for (MyPlace item : placeItems) {  // PlaceItem 대신 MyPlace 사용
-            Log.d(TAG, "Name: " + item.getTitle() + ", Location: " + item.getLocation());
-        }
+    public void onStart() {
+        super.onStart();
+        // Ensure BottomSheetBehavior is set correctly
+//        View bottomSheet = getView().findViewById(R.id.bottom_sheet);
+//        if (bottomSheet != null) {
+//            BottomSheetBehavior.from(bottomSheet).setState(BottomSheetBehavior.STATE_EXPANDED);
+//        }
     }
 }

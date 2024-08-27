@@ -1,59 +1,30 @@
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:layout_height="match_parent">
 
+    <!-- Map Fragment -->
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <LinearLayout
-        android:id="@+id/bottom_sheet"
+    <!-- Bottom Sheet Container -->
+    <TextView
+        android:id="@+id/bottom_sheet_handle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
+        android:layout_gravity="bottom"
+        android:text="선택한 요소들"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
         android:background="@android:color/white"
-        android:elevation="4dp"
-        android:gravity="top"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
-
-        <TextView
-            android:id="@+id/text_current_location"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="현재 위치: "
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingTop="8dp">
-
-            <TextView
-                android:id="@+id/text_place_title"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="장소 제목"
-                android:textStyle="bold"/>
-
-            <TextView
-                android:id="@+id/text_place_location"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="장소 이름"/>
-        </LinearLayout>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/places_recycler_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp" />
-    </LinearLayout>
-
+        android:padding="16dp"
+        android:elevation="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
