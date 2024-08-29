@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -24,9 +23,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,7 +36,6 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
     private GoogleMap mMap;
     private PlaceDataSource placeDataSource;
     private FusedLocationProviderClient fusedLocationClient;
-    private BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,12 +51,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         placeDataSource = new PlaceDataSource(this);
         placeDataSource.open();
 
-        // Initialize BottomSheetBehavior
-//        bottomSheetBehavior.setHideable(true); // Allow the sheet to be hidden
-//        bottomSheetBehavior.setPeekHeight(100); // Set initial peek height
-//        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED); // Set initial state
-
-        // Find the TextView and set its touch listener
+        // Initialize BottomSheet handle touch listener
         TextView bottomSheetHandle = findViewById(R.id.bottom_sheet_handle);
         bottomSheetHandle.setOnTouchListener(new View.OnTouchListener() {
             private float startX;
@@ -93,14 +84,11 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
                 return false;
             }
         });
-
-        // 앱이 시작할 때 바로 BottomSheetDialogFragment 표시
-        // showBottomDialog(); // Uncomment if you want to show it on startup
     }
 
     public void showBottomDialog() {
         List<MyPlace> places = placeDataSource.getAllPlaces();
-        ExampleBottomSheetDialog dialog = new ExampleBottomSheetDialog(places, mMap);
+        ExampleBottomSheetDialog dialog = new ExampleBottomSheetDialog(places, mMap, placeDataSource);
         dialog.show(getSupportFragmentManager(), "exampleBottomSheetDialog");
     }
 
@@ -123,12 +111,12 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         }
 
         mMap.setOnMarkerClickListener(marker -> {
-            // 클릭 시 BottomSheet를 표시할 필요 없이 기존 DialogFragment가 표시된 상태로 유지
+            // Clicking a marker does nothing extra
             return false;
         });
 
         mMap.setOnCameraMoveListener(() -> {
-            // 지도가 움직일 때 추가 작업이 필요하다면 여기에 추가
+            // Add additional functionality if needed
         });
     }
 

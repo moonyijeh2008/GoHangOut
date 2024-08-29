@@ -74,4 +74,11 @@ public class PlaceDataSource {
         place.setDetails(cursor.getString(6));
         return place;
     }
+
+    // 새로운 메서드: 항목 삭제
+    public void deletePlace(long placeId) {
+        database.delete(PlaceDatabaseHelper.TABLE_PLACES,
+                PlaceDatabaseHelper.COLUMN_ID + " = ?",
+                new String[]{String.valueOf(placeId)});
+    }
 }
