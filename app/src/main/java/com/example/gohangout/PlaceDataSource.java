@@ -20,7 +20,9 @@ public class PlaceDataSource {
             PlaceDatabaseHelper.COLUMN_LOCATION,
             PlaceDatabaseHelper.COLUMN_LATITUDE,
             PlaceDatabaseHelper.COLUMN_LONGITUDE,
-            PlaceDatabaseHelper.COLUMN_DETAILS
+            PlaceDatabaseHelper.COLUMN_DETAILS,
+            PlaceDatabaseHelper.COLUMN_CAMERA_IMAGE_PATH, // 카메라 이미지 경로 컬럼 추가
+            PlaceDatabaseHelper.COLUMN_USER_IMAGE_PATH   // 사용자 이미지 경로 컬럼 추가
     };
 
     public PlaceDataSource(Context context) {
@@ -35,7 +37,8 @@ public class PlaceDataSource {
         dbHelper.close();
     }
 
-    public void savePlace(String title, String desc, String location, double latitude, double longitude, String details) {
+    // 이미지 경로 추가된 savePlace 메서드
+    public void savePlace(String title, String desc, String location, double latitude, double longitude, String details, String cameraImagePath, String userImagePath) {
         ContentValues values = new ContentValues();
         values.put(PlaceDatabaseHelper.COLUMN_TITLE, title);
         values.put(PlaceDatabaseHelper.COLUMN_DESC, desc);
@@ -43,6 +46,8 @@ public class PlaceDataSource {
         values.put(PlaceDatabaseHelper.COLUMN_LATITUDE, latitude);
         values.put(PlaceDatabaseHelper.COLUMN_LONGITUDE, longitude);
         values.put(PlaceDatabaseHelper.COLUMN_DETAILS, details);
+        values.put(PlaceDatabaseHelper.COLUMN_CAMERA_IMAGE_PATH, cameraImagePath); // 카메라 이미지 경로 추가
+        values.put(PlaceDatabaseHelper.COLUMN_USER_IMAGE_PATH, userImagePath);     // 사용자 이미지 경로 추가
 
         database.insert(PlaceDatabaseHelper.TABLE_PLACES, null, values);
     }
@@ -72,6 +77,8 @@ public class PlaceDataSource {
         place.setLatitude(cursor.getDouble(4));
         place.setLongitude(cursor.getDouble(5));
         place.setDetails(cursor.getString(6));
+        place.setCameraImagePath(cursor.getString(7)); // 카메라 이미지 경로 설정
+        place.setUserImagePath(cursor.getString(8));   // 사용자 이미지 경로 설정
         return place;
     }
 

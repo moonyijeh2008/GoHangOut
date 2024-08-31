@@ -8,9 +8,11 @@ public class MyPlace {
     private double latitude;
     private double longitude;
     private String details;
+    private String cameraImagePath; // 카메라로 찍은 이미지 경로
+    private String userImagePath; // 사용자 선택 이미지 경로
+    private boolean isCameraImage; // 카메라 이미지 여부를 구분하기 위한 필드
 
     // Getters and Setters
-
     public long getId() {
         return id;
     }
@@ -65,5 +67,29 @@ public class MyPlace {
 
     public void setDetails(String details) {
         this.details = details;
+    }
+
+    public String getCameraImagePath() {
+        return cameraImagePath;
+    }
+
+    public void setCameraImagePath(String cameraImagePath) {
+        this.cameraImagePath = cameraImagePath;
+    }
+
+    public String getUserImagePath() {
+        return userImagePath;
+    }
+
+    public void setUserImagePath(String userImagePath) {
+        this.userImagePath = userImagePath;
+    }
+
+    public boolean isCameraImage() {
+        return isCameraImage;
+    }
+
+    public void setCameraImage(boolean cameraImage) {
+        isCameraImage = cameraImage;
     }
 }

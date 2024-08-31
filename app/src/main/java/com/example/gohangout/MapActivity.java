@@ -23,6 +23,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
@@ -96,6 +97,9 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        // Set the custom InfoWindowAdapter
+        mMap.setInfoWindowAdapter(new CustomInfoWindowAdapter(this));
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
@@ -111,12 +115,9 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         }
 
         mMap.setOnMarkerClickListener(marker -> {
-            // Clicking a marker does nothing extra
-            return false;
-        });
-
-        mMap.setOnCameraMoveListener(() -> {
-            // Add additional functionality if needed
+            // Show custom info window
+            marker.showInfoWindow(); // This triggers the InfoWindow to display
+            return true;
         });
     }
 
@@ -146,7 +147,10 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
             if (addresses != null && !addresses.isEmpty()) {
                 Address address = addresses.get(0);
                 LatLng location = new LatLng(address.getLatitude(), address.getLongitude());
-                mMap.addMarker(new MarkerOptions().position(location).title(myPlace.getTitle()));
+                Marker marker = mMap.addMarker(new MarkerOptions()
+                        .position(location)
+                        .title(myPlace.getTitle())); // Sets the title for the marker
+                ((Marker) marker).setTag(myPlace); // Sets the MyPlace object as a tag to the marker
             }
         } catch (IOException e) {
             e.printStackTrace();
