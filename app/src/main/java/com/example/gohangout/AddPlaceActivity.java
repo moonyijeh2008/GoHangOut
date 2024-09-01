@@ -57,9 +57,6 @@ public class AddPlaceActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_place);
 
-
-
-
         editTitle = findViewById(R.id.editTitle);
         editDesc = findViewById(R.id.editDesc);
         editLocation = findViewById(R.id.editLocation);
