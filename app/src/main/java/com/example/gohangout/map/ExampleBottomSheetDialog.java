@@ -1,4 +1,4 @@
-package com.example.gohangout;
+package com.example.gohangout.map;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
@@ -12,6 +12,9 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.gohangout.R;
+import com.example.gohangout.database.MyPlace;
+import com.example.gohangout.database.PlaceDataSource;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.gms.maps.GoogleMap;
 

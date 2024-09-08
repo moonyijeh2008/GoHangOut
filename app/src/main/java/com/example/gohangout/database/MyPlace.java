@@ -1,6 +1,9 @@
-package com.example.gohangout;
+package com.example.gohangout.database;
 
-public class MyPlace {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class MyPlace implements Parcelable {
     private long id;
     private String title;
     private String desc;
@@ -9,8 +12,57 @@ public class MyPlace {
     private double longitude;
     private String details;
     private String cameraImagePath; // 카메라로 찍은 이미지 경로
-    private String userImagePath; // 사용자 선택 이미지 경로
-    private boolean isCameraImage; // 카메라 이미지 여부를 구분하기 위한 필드
+    private String userImagePath;   // 사용자 선택 이미지 경로
+    private boolean isCameraImage;  // 카메라 이미지 여부를 구분하기 위한 필드
+
+    // 기본 생성자
+    public MyPlace() {}
+
+    // Parcelable 생성자
+    protected MyPlace(Parcel in) {
+        id = in.readLong();
+        title = in.readString();
+        desc = in.readString();
+        location = in.readString();
+        latitude = in.readDouble();
+        longitude = in.readDouble();
+        details = in.readString();
+        cameraImagePath = in.readString();
+        userImagePath = in.readString();
+        isCameraImage = in.readByte() != 0; // boolean 값을 읽음
+    }
+
+    // Parcelable 구현에 필요한 메서드
+    public static final Creator<MyPlace> CREATOR = new Creator<MyPlace>() {
+        @Override
+        public MyPlace createFromParcel(Parcel in) {
+            return new MyPlace(in);
+        }
+
+        @Override
+        public MyPlace[] newArray(int size) {
+            return new MyPlace[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeLong(id);
+        parcel.writeString(title);
+        parcel.writeString(desc);
+        parcel.writeString(location);
+        parcel.writeDouble(latitude);
+        parcel.writeDouble(longitude);
+        parcel.writeString(details);
+        parcel.writeString(cameraImagePath);
+        parcel.writeString(userImagePath);
+        parcel.writeByte((byte) (isCameraImage ? 1 : 0)); // boolean 값을 저장
+    }
 
     // Getters and Setters
     public long getId() {

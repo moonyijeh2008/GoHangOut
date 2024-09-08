@@ -1,4 +1,4 @@
-package com.example.gohangout;
+package com.example.gohangout.add;
 
 import static android.content.ContentValues.TAG;
 
@@ -17,28 +17,24 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.fragment.app.Fragment;
 import androidx.loader.content.CursorLoader;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.example.gohangout.R;
+import com.example.gohangout.database.PlaceDataSource;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,7 +44,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class AddPlaceActivity extends AppCompatActivity {
+public class AddFragment extends Fragment {
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_IMAGE_PICK = 2;
@@ -61,36 +57,39 @@ public class AddPlaceActivity extends AppCompatActivity {
     private String currentPhotoPath;
     private String userImagePath;
 
-    private RequestQueue requestQueue;
-    private static final String SERVER_URL = "http://152.67.209.177:3000/";
+    private PlaceDataSource placeDataSource;
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // activity_add_place.xml을 사용하여 프래그먼트 레이아웃 설정
+        return inflater.inflate(R.layout.activity_add_place, container, false);
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_place);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-        editTitle = findViewById(R.id.editTitle);
-        editDesc = findViewById(R.id.editDesc);
-        editLocation = findViewById(R.id.editLocation);
-        editDetails = findViewById(R.id.editDetails);
-        btnSave = findViewById(R.id.btnSave);
-        imageCamera = findViewById(R.id.imageCamera);
-        imageGallery = findViewById(R.id.imageGallery);
+        editTitle = view.findViewById(R.id.editTitle);
+        editDesc = view.findViewById(R.id.editDesc);
+        editLocation = view.findViewById(R.id.editLocation);
+        editDetails = view.findViewById(R.id.editDetails);
+        btnSave = view.findViewById(R.id.btnSave);
+        imageCamera = view.findViewById(R.id.imageCamera);
+        imageGallery = view.findViewById(R.id.imageGallery);
 
-        requestQueue = Volley.newRequestQueue(this);
+        // 데이터베이스 초기화 및 연결
+        placeDataSource = new PlaceDataSource(requireContext());
+        placeDataSource.open();
 
-        btnSave.setOnClickListener(v -> {
-            savePlace();
-        });
-
+        btnSave.setOnClickListener(v -> savePlace());
         imageCamera.setOnClickListener(v -> checkCameraPermissionAndOpenCamera());
-
         imageGallery.setOnClickListener(v -> dispatchPickFromGalleryIntent());
     }
 
     private void checkCameraPermissionAndOpenCamera() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
         } else {
             dispatchTakePictureIntent();
         }
@@ -105,13 +104,13 @@ public class AddPlaceActivity extends AppCompatActivity {
 
         List<String> permissionsToRequest = new ArrayList<>();
         for (String permission : permissions) {
-            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(requireContext(), permission) != PackageManager.PERMISSION_GRANTED) {
                 permissionsToRequest.add(permission);
             }
         }
 
         if (!permissionsToRequest.isEmpty()) {
-            ActivityCompat.requestPermissions(this, permissionsToRequest.toArray(new String[0]), REQUEST_PERMISSIONS);
+            requestPermissions(permissionsToRequest.toArray(new String[0]), REQUEST_PERMISSIONS);
         }
     }
 
@@ -122,14 +121,14 @@ public class AddPlaceActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 dispatchTakePictureIntent();
             } else {
-                Toast.makeText(this, "Camera permission is required to take pictures.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Camera permission is required to take pictures.", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+        if (takePictureIntent.resolveActivity(requireActivity().getPackageManager()) != null) {
             File photoFile = null;
             try {
                 photoFile = createImageFile();
@@ -137,7 +136,7 @@ public class AddPlaceActivity extends AppCompatActivity {
                 Log.e(TAG, "Error creating image file", ex);
             }
             if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this, "com.example.gohangout.fileprovider", photoFile);
+                Uri photoURI = FileProvider.getUriForFile(requireContext(), "com.example.gohangout.fileprovider", photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
@@ -150,9 +149,9 @@ public class AddPlaceActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK) {
+        if (resultCode == getActivity().RESULT_OK) {
             if (requestCode == REQUEST_IMAGE_CAPTURE) {
                 File file = new File(currentPhotoPath);
                 if (file.exists()) {
@@ -161,7 +160,7 @@ public class AddPlaceActivity extends AppCompatActivity {
                     imageCamera.setImageBitmap(bitmap);
                     Log.d(TAG, "Camera image saved at: " + currentPhotoPath);
                 }
-            } else if (requestCode == REQUEST_IMAGE_PICK) {
+            } else if (requestCode == REQUEST_IMAGE_PICK && data != null) {
                 Uri selectedImage = data.getData();
                 if (selectedImage != null) {
                     imageGallery.setImageURI(selectedImage);
@@ -174,7 +173,7 @@ public class AddPlaceActivity extends AppCompatActivity {
 
     private String getRealPathFromURI(Uri contentUri) {
         String[] proj = {MediaStore.Images.Media.DATA};
-        CursorLoader loader = new CursorLoader(this, contentUri, proj, null, null, null);
+        CursorLoader loader = new CursorLoader(requireContext(), contentUri, proj, null, null, null);
         Cursor cursor = loader.loadInBackground();
         if (cursor != null) {
             int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
@@ -189,7 +188,7 @@ public class AddPlaceActivity extends AppCompatActivity {
     private File createImageFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(imageFileName, ".jpg", storageDir);
 
         currentPhotoPath = image.getAbsolutePath();
@@ -226,7 +225,6 @@ public class AddPlaceActivity extends AppCompatActivity {
     }
 
     private void savePlace() {
-
         checkStoragePermission();
 
         String title = editTitle.getText().toString();
@@ -239,7 +237,7 @@ public class AddPlaceActivity extends AppCompatActivity {
         double latitude = 0.0;
         double longitude = 0.0;
 
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
         try {
             List<Address> addresses = geocoder.getFromLocationName(location, 1);
             if (addresses != null && !addresses.isEmpty()) {
@@ -256,41 +254,15 @@ public class AddPlaceActivity extends AppCompatActivity {
             Log.e(TAG, "Geocoding failed", e);
         }
 
-        sendPlaceToServer(title, desc, location, latitude, longitude, details, currentPhotoPath, userImagePath);
-    }
-
-    private void sendPlaceToServer(String title, String desc, String location, double latitude, double longitude, String details, String cameraImagePath, String userImagePath) {
-        String url = SERVER_URL + "place/create";
-
-        JSONObject jsonBody = new JSONObject();
-        try {
-            jsonBody.put("name", title);
-            jsonBody.put("introduction", desc);
-            jsonBody.put("address", location);
-            jsonBody.put("explanation", details);
-            jsonBody.put("uid", "USER_ID");  // 사용자 ID 입력 필요
-
-            // 이미지 경로 추가
-            if (cameraImagePath != null) {
-                jsonBody.put("cameraImagePath", cameraImagePath);
-            }
-            if (userImagePath != null) {
-                jsonBody.put("userImagePath", userImagePath);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, url, jsonBody,
-                response -> Log.d(TAG, "Place saved successfully on server."),
-                error -> Log.e(TAG, "Error saving place to server: " + error.getMessage()));
-
-        requestQueue.add(jsonObjectRequest);
+        // 로컬 데이터베이스에 장소 저장
+        placeDataSource.savePlace(title, desc, location, latitude, longitude, details, currentPhotoPath, userImagePath);
+        Toast.makeText(requireContext(), "Place saved locally", Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    public void onDestroyView() {
+        super.onDestroyView();
+        // 데이터베이스 연결 종료
+        placeDataSource.close();
     }
 }

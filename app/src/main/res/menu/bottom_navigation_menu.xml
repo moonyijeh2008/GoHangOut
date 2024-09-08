@@ -1,0 +1,28 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/navigation_home"
+        android:icon="@drawable/home_selector"
+        android:title="홈" />
+
+    <item
+        android:id="@+id/navigation_schedule"
+        android:icon="@drawable/cal_selector"
+        android:title="일정" />
+
+    <item
+        android:id="@+id/navigation_map"
+        android:icon="@drawable/map_selector"
+        android:title="지도" />
+
+    <item
+        android:id="@+id/navigation_add"
+        android:icon="@drawable/plus_selector"
+        android:title="추가" />
+
+    <item
+        android:id="@+id/navigation_profile"
+        android:icon="@drawable/profile_selector"
+        android:title="프로필" />
+</menu>

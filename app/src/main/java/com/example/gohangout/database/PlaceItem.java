@@ -1,4 +1,4 @@
-package com.example.gohangout;
+package com.example.gohangout.database;
 
 import android.os.Parcel;
 import android.os.Parcelable;
