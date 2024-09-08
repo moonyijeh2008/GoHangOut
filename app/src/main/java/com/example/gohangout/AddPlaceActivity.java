@@ -30,6 +30,16 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.loader.content.CursorLoader;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -46,11 +56,13 @@ public class AddPlaceActivity extends AppCompatActivity {
     private static final int REQUEST_PERMISSIONS = 101;
 
     private EditText editTitle, editDesc, editLocation, editDetails;
-    private PlaceDataSource placeDataSource;
     private Button btnSave;
     private ImageView imageCamera, imageGallery;
     private String currentPhotoPath;
     private String userImagePath;
+
+    private RequestQueue requestQueue;
+    private static final String SERVER_URL = "http://152.67.209.177:3000/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,12 +77,10 @@ public class AddPlaceActivity extends AppCompatActivity {
         imageCamera = findViewById(R.id.imageCamera);
         imageGallery = findViewById(R.id.imageGallery);
 
-        placeDataSource = new PlaceDataSource(this);
-        placeDataSource.open();
+        requestQueue = Volley.newRequestQueue(this);
 
         btnSave.setOnClickListener(v -> {
             savePlace();
-            finish();
         });
 
         imageCamera.setOnClickListener(v -> checkCameraPermissionAndOpenCamera());
@@ -93,7 +103,6 @@ public class AddPlaceActivity extends AppCompatActivity {
                 Manifest.permission.CAMERA
         };
 
-        // 필요한 권한을 확인하고, 요청할 필요가 있는 경우
         List<String> permissionsToRequest = new ArrayList<>();
         for (String permission : permissions) {
             if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
@@ -102,7 +111,6 @@ public class AddPlaceActivity extends AppCompatActivity {
         }
 
         if (!permissionsToRequest.isEmpty()) {
-            // 권한이 허용되지 않은 경우 요청
             ActivityCompat.requestPermissions(this, permissionsToRequest.toArray(new String[0]), REQUEST_PERMISSIONS);
         }
     }
@@ -248,44 +256,41 @@ public class AddPlaceActivity extends AppCompatActivity {
             Log.e(TAG, "Geocoding failed", e);
         }
 
-        MyPlace place = new MyPlace();
-        place.setTitle(title);
-        place.setDesc(desc);
-        place.setLocation(location);
-        place.setLatitude(latitude);
-        place.setLongitude(longitude);
-        place.setDetails(details);
+        sendPlaceToServer(title, desc, location, latitude, longitude, details, currentPhotoPath, userImagePath);
+    }
 
-        if (currentPhotoPath != null && !currentPhotoPath.isEmpty()) {
-            Log.d(TAG, "Setting camera image path: " + currentPhotoPath);
-            place.setCameraImagePath(currentPhotoPath);
-        } else {
-            Log.w(TAG, "Camera image path is null or empty when saving MyPlace.");
+    private void sendPlaceToServer(String title, String desc, String location, double latitude, double longitude, String details, String cameraImagePath, String userImagePath) {
+        String url = SERVER_URL + "place/create";
+
+        JSONObject jsonBody = new JSONObject();
+        try {
+            jsonBody.put("name", title);
+            jsonBody.put("introduction", desc);
+            jsonBody.put("address", location);
+            jsonBody.put("explanation", details);
+            jsonBody.put("uid", "USER_ID");  // 사용자 ID 입력 필요
+
+            // 이미지 경로 추가
+            if (cameraImagePath != null) {
+                jsonBody.put("cameraImagePath", cameraImagePath);
+            }
+            if (userImagePath != null) {
+                jsonBody.put("userImagePath", userImagePath);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return;
         }
 
-        if (userImagePath != null && !userImagePath.isEmpty()) {
-            Log.d(TAG, "Setting user image path: " + userImagePath);
-            place.setUserImagePath(userImagePath);
-        } else {
-            Log.w(TAG, "User image path is null or empty when saving MyPlace.");
-        }
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, url, jsonBody,
+                response -> Log.d(TAG, "Place saved successfully on server."),
+                error -> Log.e(TAG, "Error saving place to server: " + error.getMessage()));
 
-        // 수정된 savePlace 호출
-        placeDataSource.savePlace(
-                place.getTitle(),
-                place.getDesc(),
-                place.getLocation(),
-                place.getLatitude(),
-                place.getLongitude(),
-                place.getDetails(),
-                place.getCameraImagePath(), // 카메라 이미지 경로
-                place.getUserImagePath()    // 사용자 이미지 경로
-        );
+        requestQueue.add(jsonObjectRequest);
     }
 
     @Override
     protected void onDestroy() {
-        placeDataSource.close();
         super.onDestroy();
     }
 }
